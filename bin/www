@@ -1,0 +1,31 @@
+#!/usr/bin/env node
+var debug = require('debug')('nodeOscSample');
+var app = require('../app');
+
+app.set('port', process.env.PORT || 3000);
+
+var server = app.listen(app.get('port'), function() {
+  debug('Express server listening on port ' + server.address().port);
+});
+
+
+// WebSocket
+var self = this;
+var io = require('socket.io').listen(server);
+io.sockets.on('connection', function(socket){
+    console.log('connected');
+    self.socket = socket;
+});
+
+
+var osc = require('node-osc');
+var oscServer = new osc.Server(3333, '0.0.0.0');
+
+// OSC Data Receive
+oscServer.on('message', function (msg, rcvData) {
+    console.log('message');
+    console.log(msg);
+
+    // Send to Browser
+    self.socket.emit('message', 'Sample Data');
+});
